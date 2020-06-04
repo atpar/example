@@ -1,4 +1,4 @@
-const { AP, Template, Order, Utils } = require('@atpar/ap.js');
+const { AP, Template, Order, Utils, Asset } = require('@atpar/ap.js');
 const { web3, generateAccounts, getAccount, spinLog, signTypedData } = require('./utils');
 
 const TERMS = require('./utils/terms.json');
@@ -14,23 +14,20 @@ const counterparty = counterpartyAccount.address
 const main = async () => {
 
     // Initialize Accounts
-    generateAccounts() //TODO fund accounts...
-
+    // generateAccounts() //TODO fund accounts...
 
     // Initialize creator ap.js
     const creatorAP = await AP.init(web3, creator);
     const counterpartyAP = await AP.init(web3, counterparty);
     // Deploy settlement token
-    // const token = await createSettlementToken(creator)
-    // const tokenAddress = token.options.address
+    const token = await createSettlementToken(creator)
+    const tokenAddress = token.options.address
 
     // Create new template
-    // const template = await createTemplate(creatorAP, tokenAddress);
+    const template = await createTemplate(creatorAP, tokenAddress);
 
     //Get Template from ID
-    const template = await getTemplate(creatorAP, "0x337db45885d43c4777a3a22e4df43f4b9089c823acb7321fdc50401a2a157799");
-
-    const templateId = template.templateId
+    // const template = await getTemplate(creatorAP, "0x337db45885d43c4777a3a22e4df43f4b9089c823acb7321fdc50401a2a157799");
 
     // Create a new Order from Template
     const order = await createAndSignOrder(creatorAP, template)
@@ -38,13 +35,31 @@ const main = async () => {
     // Sign order as counterparty
     const orderSigned = await signOrderAsCounterparty(counterpartyAP, order)
     const orderData = orderSigned.serializeOrder()
+
     // Load order from the orderData to verify signatures
     const verifiedOrder = await Order.load(creatorAP, orderData)
-    console.log("ORDER HAS BEEN VERIFIED")
-    console.log(verifiedOrder)
+    console.log("Order has been signed and verified")
 
-    process.exit(0)
-}
+    // Issue asset from order
+    // would be nice if this returned either a tx hash or an Asset object
+    let sLog = spinLog("Sending Asset Issuance Transaction")
+    await verifiedOrder.issueAssetFromOrder();
+    sLog.stop(true)
+
+    let assetIdList = await creatorAP.getAssetIds()
+    console.log(assetIdList)
+
+    let assetId = assetIdList.pop()
+    console.log(assetId)
+
+    let asset = await Asset.load(creatorAP, assetId)
+    let schedule = await asset.getSchedule()
+    console.log(schedule)
+    let nextEvent = await asset.getNextScheduledEvent()
+    console.log(nextEvent)
+    let decodedEvent = Utils.schedule.decodeEvent(nextEvent)
+    console.log(decodedEvent)
+}   
 
 const createSettlementToken = async (account) => {
     let sLog = spinLog("Creating ERC20 Settlement Token Contract ")
@@ -138,7 +153,6 @@ const signOrderAsCounterparty = async (counterPartyAP, order) => {
     console.log(typedDataOrder)
     let sig = signTypedData(counterpartyAccount, typedDataOrder)
     order.orderData.counterpartySignature = sig
-
     return order
 }
 

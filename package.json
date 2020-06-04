@@ -6,7 +6,9 @@
   "author": "Joe Bernitt <j.b5286@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "generate-wallet": "node scripts/generateWallet.js && node scripts/printAddresses.js",
+    "print-wallet": "node scripts/printAddresses.js"
   },
   "dependencies": {
     "@atpar/ap-contracts": "^0.3.0-beta.0",
