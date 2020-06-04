@@ -18,7 +18,7 @@ const generateAccounts = (n, overwrite) => {
         const accountInfo = wallet[i];
         walletData.push(accountInfo)
     }
-    fs.writeFileSync(WALLET_FILENAME, JSON.stringify({wallet: walletData}, 0, 2))
+    fs.writeFileSync(WALLET_FILENAME, JSON.stringify({ wallet: walletData }, 0, 2))
 }
 
 const getAccounts = () => {
@@ -53,6 +53,9 @@ const signTypedData = (account, data) => {
     return sig
 }
 
+const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 module.exports = {
     web3,
@@ -61,5 +64,6 @@ module.exports = {
     getAccount,
     spinLog,
     wrapSpinLog,
-    signTypedData
+    signTypedData,
+    sleep
 }

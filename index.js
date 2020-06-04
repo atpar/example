@@ -1,5 +1,10 @@
 const { AP, Template, Order, Utils, Asset } = require('@atpar/ap.js');
-const { web3, generateAccounts, getAccount, spinLog, signTypedData } = require('./utils');
+const { web3,
+    generateAccounts,
+    getAccount,
+    spinLog, 
+    signTypedData, 
+    sleep } = require('./utils');
 
 const TEMPLATE_TERMS = require('./utils/templateTerms.json');
 const SettlementToken = require('./utils/SettlementToken.min.json');
@@ -16,14 +21,14 @@ const main = async () => {
     const creatorAP = await AP.init(web3, creator);
     const counterpartyAP = await AP.init(web3, counterparty);
     // Deploy settlement token
-    const token = await createSettlementToken(creator)
-    const tokenAddress = token.options.address
+    const settlementToken = await createSettlementToken(creator)
+    const settlementTokenAddress = settlementToken.options.address
 
     // Create new template
-    const template = await createTemplate(creatorAP, tokenAddress);
+    const template = await createTemplate(creatorAP, settlementTokenAddress);
 
     //Get Template from ID
-    // const template = await getTemplate(creatorAP, "0xc83f6a42dd76636262adc06681ee51c1d486becd09e1ea84275acfb1aaabf3a2");
+    // const template = await getTemplate(creatorAP, "0xefd659e9865341f78f0938fe61bc92aadf66d3f91b06e5903de5f72d6d13d025");
 
     // Create a new Order from Template
     const order = await createAndSignOrder(creatorAP, template)
@@ -47,15 +52,33 @@ const main = async () => {
     console.log("New Asset Created: " + assetId)
 
     let asset = await Asset.load(creatorAP, assetId)
-    let schedule = await asset.getSchedule()
-    // console.log(schedule)
-    let nextEvent = await asset.getNextScheduledEvent()
-    // console.log(nextEvent)
-    let decodedEvent = Utils.schedule.decodeEvent(nextEvent)
-    console.log("Next Event: ",decodedEvent)
 
+    // Service Asset
+    const { amount, token, payer } = await asset.getNextScheduledPayment();
+    const assetActorAddress = await asset.getActorAddress();
+
+    // await asset.approveNextScheduledPayment();
+
+    const erc20 = creatorAP.contracts.erc20(token);
+    let sLog1 = spinLog("Approving AssetActor contract")
+    let tx1 = await erc20.methods.approve(assetActorAddress, amount).send({ from: creator, gas: 7500000 });
+    sLog1.stop(true)
+    console.log("Approve Transaction: " + tx1.transactionHash)
+
+    // hacky prevent web3 from sending tx with same nonce
+    await sleep(500)
+
+    let sLog2 = spinLog("Progressing Asset")
+    try {
+        const tx2 = await asset.progress();
+        sLog2.stop(true)
+        console.log("Asset has been serviced!")
+    } catch (error) {
+        sLog2.stop(true)
+        console.log(error)
+    }
     process.exit(0)
-}   
+}
 
 const createSettlementToken = async (account) => {
     let sLog = spinLog("Creating ERC20 Settlement Token Contract ")
@@ -86,7 +109,7 @@ const getTemplate = async (ap, registeredTemplateId) => {
     // console.log(template)
 
     const storedTemplateTerms = await template.getTemplateTerms();
-    console.log(storedTemplateTerms)
+    // console.log(storedTemplateTerms)
 
     const schedule = await template.getTemplateSchedule()
     // console.log(schedule)
@@ -99,10 +122,15 @@ const createAndSignOrder = async (ap, template) => {
 
     const templateTerms = await template.getTemplateTerms();
 
-    let updatedTerms = Object.assign({}, TEMPLATE_TERMS);
-    updatedTerms.notionalPrincipal = '44000000000000000000000'
-    updatedTerms.nominalInterestRate = '3500000000000000000'
+    let updatedTerms = Object.assign({}, TEMPLATE_TERMS)
+
+    updatedTerms.notionalPrincipal = '44200000000000000000000'
+    updatedTerms.nominalInterestRate = '3530000000000000000'
     updatedTerms.contractDealDate = `${dateNow}`
+    // Need to add these from extended terms so they dont get overwritten with 0x0 value address
+    updatedTerms.currency = templateTerms.currency
+    updatedTerms.settlementCurrency = templateTerms.settlementCurrency
+
 
     // overlay customized terms over template defaults
     const customTerms = Utils.conversion.deriveCustomTermsFromTermsAndTemplateTerms(updatedTerms, templateTerms);
