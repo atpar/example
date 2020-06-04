@@ -8,7 +8,7 @@ const SettlementToken = require('./SettlementToken.min.json');
 const main = async () => {
 
     // Initialize Accounts
-    generateAccounts()
+    generateAccounts() //TODO fund accounts...
     const creator = getAccount(0).address
     // const counterparty = getAccount(1).address
 
@@ -16,8 +16,8 @@ const main = async () => {
     const ap = await AP.init(web3, creator);
 
     // Deploy settlement token
-    // const token = await createSettlementToken(creator)
-    const tokenAddress = "0x9e98Bfbb7016B567b18059f4A2A42177557dF2a9" //token.options.address
+    const token = await createSettlementToken(creator)
+    const tokenAddress = token.options.address
 
     // Create new template
     const template = await createTemplate(ap, tokenAddress);
@@ -33,8 +33,7 @@ const createSettlementToken = async (account) => {
     let sampleToken = new web3.eth.Contract(SettlementToken.abi);
     let token = await sampleToken.deploy({ data: SettlementToken.bytecode }).send({ from: account, gas: 2000000 });
     sLog.stop(true)
-    console.log("Token Created!")
-    console.log(token.options.address)
+    console.log("Token Created: " + token.options.address)
     return token
 }
 
