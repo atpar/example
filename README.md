@@ -29,4 +29,4 @@ After funding the wallet you can run the full example with the command:
 
 ### Issuing Asset from an order
 
-## Servicing Asset
+### Servicing Asset

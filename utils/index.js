@@ -49,7 +49,6 @@ const wrapSpinLog = async (msg, pf) => {
 
 const signTypedData = (account, data) => {
     const pk = Buffer.from(account.privateKey.substring(2), 'hex');
-    console.log(pk)
     const sig = sigUtil.signTypedMessage(pk, { data }, 'V3');
     return sig
 }

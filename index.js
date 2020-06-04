@@ -1,8 +1,7 @@
 const { AP, Template, Order, Utils, Asset } = require('@atpar/ap.js');
 const { web3, generateAccounts, getAccount, spinLog, signTypedData } = require('./utils');
 
-const TERMS = require('./utils/terms.json');
-const TEMPLATE_TERMS = require('./utils/terms.json');
+const TEMPLATE_TERMS = require('./utils/templateTerms.json');
 const SettlementToken = require('./utils/SettlementToken.min.json');
 
 const creatorAccount = getAccount(0)
@@ -24,7 +23,7 @@ const main = async () => {
     const template = await createTemplate(creatorAP, tokenAddress);
 
     //Get Template from ID
-    // const template = await getTemplate(creatorAP, "0x337db45885d43c4777a3a22e4df43f4b9089c823acb7321fdc50401a2a157799");
+    // const template = await getTemplate(creatorAP, "0xc83f6a42dd76636262adc06681ee51c1d486becd09e1ea84275acfb1aaabf3a2");
 
     // Create a new Order from Template
     const order = await createAndSignOrder(creatorAP, template)
@@ -44,18 +43,16 @@ const main = async () => {
     sLog.stop(true)
 
     let assetIdList = await creatorAP.getAssetIds()
-    console.log(assetIdList)
-
     let assetId = assetIdList.pop()
-    console.log(assetId)
+    console.log("New Asset Created: " + assetId)
 
     let asset = await Asset.load(creatorAP, assetId)
     let schedule = await asset.getSchedule()
-    console.log(schedule)
+    // console.log(schedule)
     let nextEvent = await asset.getNextScheduledEvent()
-    console.log(nextEvent)
+    // console.log(nextEvent)
     let decodedEvent = Utils.schedule.decodeEvent(nextEvent)
-    console.log(decodedEvent)
+    console.log("Next Event: ",decodedEvent)
 
     process.exit(0)
 }   
@@ -78,10 +75,6 @@ const createTemplate = async (ap, tokenAddress) => {
     let sLog = spinLog("Sending Transaction to create new Template")
     const template = await Template.create(ap, extendedTerms);
     sLog.stop(true)
-
-    // unnecessary?
-    // const template = await wrapSpinLog("Sending Transaction to create new Template", Template.create(ap, extendedTerms))
-
     console.log("New Template Created: " + template.templateId)
 
     return template
@@ -102,33 +95,29 @@ const getTemplate = async (ap, registeredTemplateId) => {
 }
 
 const createAndSignOrder = async (ap, template) => {
-
     const dateNow = Math.round((new Date()).getTime() / 1000)
 
-    const templateTerms = template.getTemplateTerms();
+    const templateTerms = await template.getTemplateTerms();
 
-    let termsToUpdate = {
-        notionalPrincipal: '44000000000000000000000',
-        nominalInterestRate: '3500000000000000000',
-        contractDealDate: `${dateNow}`,
-    }
+    let updatedTerms = Object.assign({}, TEMPLATE_TERMS);
+    updatedTerms.notionalPrincipal = '44000000000000000000000'
+    updatedTerms.nominalInterestRate = '3500000000000000000'
+    updatedTerms.contractDealDate = `${dateNow}`
 
     // overlay customized terms over template defaults
-    const customTerms = Utils.conversion.deriveCustomTermsFromTermsAndTemplateTerms(termsToUpdate, templateTerms);
-
-    console.log(customTerms)
+    const customTerms = Utils.conversion.deriveCustomTermsFromTermsAndTemplateTerms(updatedTerms, templateTerms);
 
     let orderParams = {
-        termsHash: ap.utils.erc712.getTermsHash(TERMS),
+        termsHash: ap.utils.erc712.getTermsHash(updatedTerms),
         templateId: template.templateId,
-        customTerms: ap.utils.conversion.deriveCustomTerms(TERMS),
+        customTerms,
         ownership: {
             creatorObligor: creator,
             creatorBeneficiary: creator,
             counterpartyObligor: counterparty,
             counterpartyBeneficiary: counterparty
         },
-        expirationDate: String(TERMS.contractDealDate),
+        expirationDate: String(updatedTerms.contractDealDate),
         engine: ap.contracts.pamEngine.options.address,
         admin: Utils.constants.ZERO_ADDRESS
     }
@@ -149,7 +138,6 @@ const createAndSignOrder = async (ap, template) => {
 const signOrderAsCounterparty = async (counterPartyAP, order) => {
     let orderData = order.serializeOrder();
     let typedDataOrder = Utils.erc712.getOrderDataAsTypedData(orderData, true, counterPartyAP.signer.verifyingContractAddress)
-    console.log(typedDataOrder)
     let sig = signTypedData(counterpartyAccount, typedDataOrder)
     order.orderData.counterpartySignature = sig
     return order
