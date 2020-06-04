@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node index.js",
-    "generate-wallet": "node scripts/generateWallet.js && node scripts/printAddresses.js",
+    "generate-wallet": "node scripts/generateWallet.js; node scripts/printAddresses.js",
     "print-wallet": "node scripts/printAddresses.js"
   },
   "dependencies": {

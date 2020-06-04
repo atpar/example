@@ -13,9 +13,6 @@ const counterparty = counterpartyAccount.address
 // Main Entry Point
 const main = async () => {
 
-    // Initialize Accounts
-    // generateAccounts() //TODO fund accounts...
-
     // Initialize creator ap.js
     const creatorAP = await AP.init(web3, creator);
     const counterpartyAP = await AP.init(web3, counterparty);
@@ -59,6 +56,8 @@ const main = async () => {
     console.log(nextEvent)
     let decodedEvent = Utils.schedule.decodeEvent(nextEvent)
     console.log(decodedEvent)
+
+    process.exit(0)
 }   
 
 const createSettlementToken = async (account) => {

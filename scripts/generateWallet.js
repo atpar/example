@@ -1,6 +1,6 @@
 
 (async () => {
     const { generateAccounts } = require('../utils');
-    generateAccounts();
+    generateAccounts(2);
     process.exit()
 })()

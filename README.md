@@ -11,14 +11,22 @@ First, you will need to set up your web3 wallet accounts to use as actors for th
 
 You will need to fund the primary address you plan on using for this example with Goerli Testnet ETH to pay for transaction gas costs. You can find a goerli faucet [here](https://goerli-faucet.slock.it/).
 
-## Initialize the AP classes
 
-## Create a Template
+## Run the full example
 
-## Using an existing Template
+After funding the wallet you can run the full example with the command:
 
-## Creating a new Order
+    npm start
 
-## Issuing Asset from an order
+
+### Initialize the AP classes
+
+### Create a Template
+
+### Using an existing Template
+
+### Creating a new Order
+
+### Issuing Asset from an order
 
 ## Servicing Asset
