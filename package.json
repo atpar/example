@@ -1,0 +1,17 @@
+{
+  "name": "ap-js-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/atpar/ap-js-demo.git",
+  "author": "Joe Bernitt <j.b5286@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@atpar/ap-contracts": "^0.3.0-beta.0",
+    "@atpar/ap.js": "^0.3.0-beta.0",
+    "cli-spinner": "^0.2.10",
+    "web3": "1.2.4"
+  }
+}
