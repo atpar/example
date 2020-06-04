@@ -3,6 +3,7 @@ const Web3 = require('web3')
 const fs = require('fs')
 const web3 = new Web3(new Web3.providers.WebsocketProvider('wss://goerli.infura.io/ws/v3/39749fc2a494412f80c769c6ce92878c'));
 const Spinner = require('cli-spinner').Spinner;
+const sigUtil = require('eth-sig-util')
 
 const WALLET_FILENAME = "wallet.json"
 
@@ -45,11 +46,21 @@ const wrapSpinLog = async (msg, pf) => {
     spinner.stop();
     return r
 }
+
+const signTypedData = (account, data) => {
+    const pk = Buffer.from(account.privateKey.substring(2), 'hex');
+    console.log(pk)
+    const sig = sigUtil.signTypedMessage(pk, { data }, 'V3');
+    return sig
+}
+
+
 module.exports = {
     web3,
     generateAccounts,
     getAccounts,
     getAccount,
     spinLog,
-    wrapSpinLog
+    wrapSpinLog,
+    signTypedData
 }
