@@ -1,6 +1,5 @@
 const { AP, Template, Order, Utils, Asset } = require('@atpar/ap.js');
 const { web3,
-    generateAccounts,
     getAccount,
     spinLog, 
     signTypedData, 
@@ -118,7 +117,7 @@ const getTemplate = async (ap, registeredTemplateId) => {
 }
 
 const createAndSignOrder = async (ap, template) => {
-    const dateNow = Math.round((new Date()).getTime() / 1000)
+    const dateNow = Date.now();
 
     const templateTerms = await template.getTemplateTerms();
 
