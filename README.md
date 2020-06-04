@@ -1,6 +1,6 @@
 # AP.js Demo
 
-Consider this project the "hello, world" for the [AP.js Library](https://github.com/atpar/ap-monorepo/tree/master/packages/ap.js). In this example we will walk through the process of creating and issuing a financial instrument
+Consider this project the "hello, world" for the [AP.js Library](https://github.com/atpar/ap-monorepo/tree/master/packages/ap.js). In this example we will walk through the process of creating and issuing an ACTUS protocol compliant financial instrument on a public ethereum blockchain.
 
 ## Setup
 
