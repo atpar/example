@@ -167,8 +167,8 @@ const createAndSignOrder = async (ap, template) => {
 
     const typedDataOrder = Utils.erc712.getOrderDataAsTypedData(order.orderData, false, ap.signer.verifyingContractAddress)
 
-    const bpk = deriveBufferPKFromHDWallet(web3.eth.accounts.wallet, creator)
-    const sig = sigUtil.signTypedMessage(bpk, { data: typedDataOrder }, 'V3');
+    const privateKeyBuffer = deriveBufferPKFromHDWallet(web3.eth.accounts.wallet, creator)
+    const sig = sigUtil.signTypedMessage(privateKeyBuffer, { data: typedDataOrder }, 'V3');
     order.orderData.creatorSignature = sig
  
     console.log("order signed")
@@ -178,8 +178,8 @@ const createAndSignOrder = async (ap, template) => {
 const signOrderAsCounterparty = async (counterPartyAP, order) => {
     let orderData = order.serializeOrder();
     let typedDataOrder = Utils.erc712.getOrderDataAsTypedData(orderData, true, counterPartyAP.signer.verifyingContractAddress)
-    const bpk = deriveBufferPKFromHDWallet(web3.eth.accounts.wallet, counterparty)
-    const sig = sigUtil.signTypedMessage(bpk, { data: typedDataOrder }, 'V3');
+    const privateKeyBuffer = deriveBufferPKFromHDWallet(web3.eth.accounts.wallet, counterparty)
+    const sig = sigUtil.signTypedMessage(privateKeyBuffer, { data: typedDataOrder }, 'V3');
     order.orderData.counterpartySignature = sig
     return order
 }
