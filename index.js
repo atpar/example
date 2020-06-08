@@ -1,34 +1,40 @@
 const { AP, Template, Order, Utils, Asset } = require('@atpar/ap.js');
+const sigUtil = require('eth-sig-util')
+
 const { web3,
-    getAccount,
-    spinLog, 
-    signTypedData, 
+    spinLog,
+    deriveBufferPKFromHDWallet,
     sleep } = require('./utils');
 
 const TEMPLATE_TERMS = require('./utils/templateTerms.json');
 const SettlementToken = require('./utils/SettlementToken.min.json');
 
-const creatorAccount = getAccount(0)
-const creator = creatorAccount.address
-const counterpartyAccount = getAccount(1)
-const counterparty = counterpartyAccount.address
+let creator
+let counterparty
 
 // Main Entry Point
 const main = async () => {
 
-    // Initialize creator ap.js
+    //set creator and counterparty
+    creator = (await web3.eth.getAccounts())[0]
+    counterparty = (await web3.eth.getAccounts())[1]
+
+    console.log(creator)
+
+    // Initialize creator and counterparty ap.js classes
     const creatorAP = await AP.init(web3, creator);
     const counterpartyAP = await AP.init(web3, counterparty);
+
     // Deploy settlement token
     const settlementToken = await createSettlementToken(creator)
     const settlementTokenAddress = settlementToken.options.address
 
-    // Create new template
+    // // Create new template
     const template = await createTemplate(creatorAP, settlementTokenAddress);
 
     //Get Template from ID
-    // const template = await getTemplate(creatorAP, "0xefd659e9865341f78f0938fe61bc92aadf66d3f91b06e5903de5f72d6d13d025");
-
+    // const template = await getTemplate(creatorAP, "0x267c9dd1ad2d4cfc3da6cdf1aa8c5e17e800d35422d8e199ebdfe5858441ff2d");
+    
     // Create a new Order from Template
     const order = await createAndSignOrder(creatorAP, template)
 
@@ -43,8 +49,11 @@ const main = async () => {
     // Issue asset from order
     // would be nice if this returned either a tx hash or an Asset object
     let sLog = spinLog("Sending Asset Issuance Transaction")
-    await verifiedOrder.issueAssetFromOrder();
+    await verifiedOrder.issueAssetFromOrder()
     sLog.stop(true)
+
+    // ensure that all data is read so wait for tx to propogate
+    await sleep(1500)
 
     let assetIdList = await creatorAP.getAssetIds()
     let assetId = assetIdList.pop()
@@ -52,30 +61,33 @@ const main = async () => {
 
     let asset = await Asset.load(creatorAP, assetId)
 
+
     // Service Asset
-    const { amount, token, payer } = await asset.getNextScheduledPayment();
-    const assetActorAddress = await asset.getActorAddress();
+    const schedule = await asset.getSchedule();
+    let eventDecoded = Utils.schedule.decodeEvent(schedule[0])
 
-    // await asset.approveNextScheduledPayment();
+    // console.log(eventDecoded)
+    // const { amount, token, payer } = await asset.getNextScheduledPayment();
+    // const assetActorAddress = await asset.getActorAddress();
 
-    const erc20 = creatorAP.contracts.erc20(token);
-    let sLog1 = spinLog("Approving AssetActor contract")
-    let tx1 = await erc20.methods.approve(assetActorAddress, amount).send({ from: creator, gas: 7500000 });
+    const sLog1 = spinLog("Approving AssetActor contract")
+    await asset.approveNextScheduledPayment();
     sLog1.stop(true)
-    console.log("Approve Transaction: " + tx1.transactionHash)
 
     // hacky prevent web3 from sending tx with same nonce
     await sleep(500)
 
-    let sLog2 = spinLog("Progressing Asset")
-    try {
+    const timeNow = Math.floor(Date.now() / 1000)
+
+    if (timeNow < eventDecoded.scheduleTime) {
+        console.log("Asset can not be progressed until after scheduled date: " + eventDecoded.scheduleTime)
+    } else {
+        const sLog2 = spinLog("Progressing Asset")
         const tx2 = await asset.progress();
         sLog2.stop(true)
-        console.log("Asset has been serviced!")
-    } catch (error) {
-        sLog2.stop(true)
-        console.log(error)
+        console.log("Asset has been serviced: " + tx2.transactionHash)
     }
+
     process.exit(0)
 }
 
@@ -108,7 +120,7 @@ const getTemplate = async (ap, registeredTemplateId) => {
     // console.log(template)
 
     const storedTemplateTerms = await template.getTemplateTerms();
-    // console.log(storedTemplateTerms)
+    console.log(storedTemplateTerms)
 
     const schedule = await template.getTemplateSchedule()
     // console.log(schedule)
@@ -117,14 +129,14 @@ const getTemplate = async (ap, registeredTemplateId) => {
 }
 
 const createAndSignOrder = async (ap, template) => {
-    const dateNow = Date.now();
+    const dateNow = Math.floor(Date.now() / 1000)
 
     const templateTerms = await template.getTemplateTerms();
 
     let updatedTerms = Object.assign({}, TEMPLATE_TERMS)
 
-    updatedTerms.notionalPrincipal = '44200000000000000000000'
-    updatedTerms.nominalInterestRate = '3530000000000000000'
+    updatedTerms.notionalPrincipal = web3.utils.toWei("1000")
+    updatedTerms.nominalInterestRate = web3.utils.toWei("0.5")
     updatedTerms.contractDealDate = `${dateNow}`
     // Need to add these from extended terms so they dont get overwritten with 0x0 value address
     updatedTerms.currency = templateTerms.currency
@@ -155,17 +167,19 @@ const createAndSignOrder = async (ap, template) => {
 
     const typedDataOrder = Utils.erc712.getOrderDataAsTypedData(order.orderData, false, ap.signer.verifyingContractAddress)
 
-    // await order.signOrder();
-    const sig = signTypedData(creatorAccount, typedDataOrder)
+    const bpk = deriveBufferPKFromHDWallet(web3.eth.accounts.wallet, creator)
+    const sig = sigUtil.signTypedMessage(bpk, { data: typedDataOrder }, 'V3');
     order.orderData.creatorSignature = sig
-
+ 
+    console.log("order signed")
     return order
 }
 
 const signOrderAsCounterparty = async (counterPartyAP, order) => {
     let orderData = order.serializeOrder();
     let typedDataOrder = Utils.erc712.getOrderDataAsTypedData(orderData, true, counterPartyAP.signer.verifyingContractAddress)
-    let sig = signTypedData(counterpartyAccount, typedDataOrder)
+    const bpk = deriveBufferPKFromHDWallet(web3.eth.accounts.wallet, counterparty)
+    const sig = sigUtil.signTypedMessage(bpk, { data: typedDataOrder }, 'V3');
     order.orderData.counterpartySignature = sig
     return order
 }
