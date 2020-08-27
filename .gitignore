@@ -3,6 +3,5 @@ wallet.*
 node_modules/
 local/
 
-secret*
 
 .yalc

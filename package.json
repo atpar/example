@@ -6,14 +6,18 @@
   "author": "Joe Bernitt <j.b5286@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "start:chain": "./startChain.sh",
+    "deploy": "./deployContracts.sh",
     "start": "node index.js"
   },
   "dependencies": {
-    "@atpar/ap-contracts": "^0.3.0-beta.0",
-    "@atpar/ap.js": "^0.3.0-beta.0",
+    "@atpar/ap-contracts": "^0.4.3",
+    "@atpar/ap.js": "^0.4.3",
     "@truffle/hdwallet-provider": "^1.0.35",
     "cli-spinner": "^0.2.10",
     "eth-sig-util": "^2.5.3",
+    "ganache-cli": "^6.10.1",
+    "truffle": "^5.1.41",
     "web3": "1.2.4"
   }
 }
