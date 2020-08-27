@@ -4,21 +4,18 @@ Consider this project the "hello, world" for the [AP.js Library](https://github.
 
 ## Setup
 
-First, you will need to create a file in the root of the director named `secret.json` which will store your wallet and provider configuration objects. The JSON structure of this file should contain a `mnemonic` field with a 12 word mnemonic phrase as well as a `rpcURL` field containing the string of the ethereum RPC URL you wish to connect to. See below for an example of what the file should look like.
+Start a local ethereum testnet:
 
-```json
-{
-    "mnemonic": "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat",
-    "rpcURL": "https://goerli.infura.io/v3/<YOUR PROJECT ID>"
-}
-```
+    npm run start:chain
 
-You will need to fund the primary address you plan on using for this example with Goerli Testnet ETH to pay for transaction gas costs. You can find a goerli faucet [here](https://goerli-faucet.slock.it/).
+Run the deployment scripts to create a new set of AP contracts:
+
+    npm run deploy
 
 
 ## Run the full example
 
-After funding the wallet you can run the full example with the command:
+Run the `index.js` node script with the following command:
 
     npm start
 
