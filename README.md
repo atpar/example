@@ -4,6 +4,10 @@ Consider this project the "hello, world" for the [AP.js Library](https://github.
 
 ## Setup
 
+Install node modules
+
+    npm install
+
 Start a local ethereum testnet:
 
     npm run start:chain
