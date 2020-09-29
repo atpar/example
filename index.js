@@ -83,7 +83,7 @@ const main = async () => {
     const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({from: anyone});
     console.log('Progress events: ', progressTx.events)
 
-
+    console.log('\nDONE.')
 }
 
 main();
