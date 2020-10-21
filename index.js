@@ -60,17 +60,17 @@ const main = async () => {
     // Get asset terms
     const assetTerms = await ap.contracts.pamRegistry.methods.getTerms(assetId).call();
     const readableTerms = ap.utils.conversion.web3ResponseToPAMTerms(assetTerms);
-    // console.log(readableTerms);
+    console.log('Asset terms: ', readableTerms);
 
     // Get asset state
     const assetState = await ap.contracts.pamRegistry.methods.getState(assetId).call();
     const readableState = ap.utils.conversion.web3ResponseToState(assetState);
-    // console.log(readableState);
+    console.log('Asset state: ', readableState);
 
     // Get next scheduled event
     const nextScheduledEvent = await ap.contracts.pamRegistry.methods.getNextScheduledEvent(assetId).call();
     const decodedEvent = ap.utils.schedule.decodeEvent(nextScheduledEvent);
-    // console.log(decodedEvent)
+    console.log('Next scheduled event: ', decodedEvent)
 
 
     // approve actor to execute settlement payment 
@@ -81,10 +81,9 @@ const main = async () => {
 
     // Progress the asset
     const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({from: anyone});
-    // console.log(progressTx.events)
+    console.log('Progress events: ', progressTx.events)
 
-
-    process.exit(0);
+    console.log('\nDONE.')
 }
 
 main();
