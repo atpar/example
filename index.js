@@ -23,7 +23,7 @@ const main = async () => {
     const settlementToken = await deploySettlementToken(web3);
 
     //create terms
-    const PAMTerms = require('./PAMTerms.json');
+    const PAMTerms = require('./utils/PAMTerms.json');
     const terms = {
         ...PAMTerms,
         currency: settlementToken.options.address

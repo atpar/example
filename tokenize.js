@@ -27,6 +27,7 @@ const main = async () => {
         console.log('assetId is not set')
         process.exit()
     }
+
     const rawTerms = await ap.contracts.pamRegistry.methods.getTerms(assetId).call();
     console.log(rawTerms.currency)
     const assetTerms = ap.utils.conversion.web3ResponseToPAMTerms(rawTerms);
@@ -38,7 +39,7 @@ const main = async () => {
     const fdt = await deployFundsDistributionToken({fundsToken, owner: primaryOwner, initialAmount})
 
     // Set FDT Contract as new beneficiary for asset
-    // await ap.contracts.pamRegistry.methods.setCreatorBeneficiary(assetId,fdt.options.address).send({from: primaryOwner});
+    await ap.contracts.pamRegistry.methods.setCreatorBeneficiary(assetId,fdt.options.address).send({from: primaryOwner});
 
     // Share Ownership
     await fdt.methods.mint(fractionalOwner, web3.utils.toWei('1')).send({from: primaryOwner})
@@ -50,7 +51,6 @@ const main = async () => {
     console.log('Frac Bal: ' + fracBal.toString());
 
     // Mock a payment
-
     const settlementToken = await getSettlementToken(fundsToken);
     await settlementToken.methods.drip(fdt.options.address, web3.utils.toWei('50')).send({from: primaryOwner});
 

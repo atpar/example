@@ -6,7 +6,7 @@
   "author": "Joe Bernitt <j.b5286@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start:chain": "./startChain.sh",
+    "start:chain": "./scripts/startChain.sh",
     "deploy": "./deployContracts.sh",
     "start": "node index.js"
   },

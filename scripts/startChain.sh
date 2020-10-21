@@ -32,7 +32,7 @@ ganache_pid=$!
 
 sleep 3
 
-node applyTransactions.js
+node ./scripts/applyTransactions.js
 
 echo "✓ ready"
 
