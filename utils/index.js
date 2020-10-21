@@ -9,7 +9,7 @@ let provider = new HDWalletProvider(mnemonic, rpcURL);
 
 const web3 = new Web3(provider);
 
-const SettlementTokenArtifact = require('@atpar/ap-contracts/artifacts/SettlementToken.min.json');
+const SettlementTokenArtifact = require('@atpar/protocol/build/contracts/SettlementToken.json');
 
 //TODO implement this without dependency
 const spinLog = (msg) => {
@@ -51,7 +51,12 @@ const deploySettlementToken =  async (web3) => {
     sampleToken = await sampleToken.deploy({ data: SettlementTokenArtifact.bytecode }).send({ from: account, gas: 2000000 });
   
     return sampleToken;
-  }
+}
+
+const getSettlementToken =  async (address) => {  
+    return new web3.eth.Contract(SettlementTokenArtifact.abi, address);
+}
+
   
 
 module.exports = {
@@ -61,5 +66,6 @@ module.exports = {
     signTypedData,
     deriveBufferPKFromHDWallet,
     sleep,
-    deploySettlementToken
+    deploySettlementToken,
+    getSettlementToken
 }

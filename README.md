@@ -8,10 +8,6 @@ Start a local ethereum testnet:
 
     npm run start:chain
 
-Run the deployment scripts to create a new set of AP contracts:
-
-    npm run deploy
-
 
 ## Run the full example
 

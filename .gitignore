@@ -3,5 +3,6 @@ wallet.*
 node_modules/
 local/
 
+ap-chain/
 
 .yalc
