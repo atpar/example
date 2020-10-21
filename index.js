@@ -84,6 +84,7 @@ const main = async () => {
     console.log('Progress events: ', progressTx.events)
 
     console.log('\nDONE.')
+    process.exit()
 }
 
 main();

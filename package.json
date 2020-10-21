@@ -15,7 +15,6 @@
     "@truffle/hdwallet-provider": "^1.0.35",
     "cli-spinner": "^0.2.10",
     "eth-sig-util": "^2.5.3",
-    "ethers": "^5.0.18",
     "ganache-cli": "^6.10.1",
     "truffle": "^5.1.41",
     "web3": "1.2.4"
