@@ -11,7 +11,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@atpar/protocol": "0.0.1-alpha.0",
+    "@atpar/protocol": "0.0.1-alpha.3",
     "@truffle/hdwallet-provider": "^1.0.35",
     "cli-spinner": "^0.2.10",
     "eth-sig-util": "^2.5.3",
