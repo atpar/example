@@ -1,8 +1,8 @@
 {
-  "name": "ap-js-demo",
+  "name": "ap-js-example",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/atpar/ap-js-demo.git",
+  "repository": "https://github.com/atpar/ap-js-example.git",
   "author": "Joe Bernitt <j.b5286@gmail.com>",
   "license": "MIT",
   "scripts": {
