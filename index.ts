@@ -1,29 +1,45 @@
-const { AP } = require('@atpar/protocol');
-const HDWalletProvider = require('@truffle/hdwallet-provider');
-const Web3 = require('web3')
-const {mnemonic, rpcURL} = require('./secret.json')
-let provider = new HDWalletProvider(mnemonic, rpcURL);
-const web3 = new Web3(provider);
+import Web3 from 'web3';
+import { AP } from '@atpar/protocol';
+import SettlementTokenArtifact from '@atpar/protocol/build/contracts/SettlementToken.json';
+import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
 
-const { deploySettlementToken } = require('./utils')
+import { keys, rpcURL } from './secret.json';
+import PAMTerms from './utils/PAMTerms.json';
+
+
+const deploySettlementToken =  async (web3: Web3, account: string) => {
+    // @ts-ignore
+    let sampleToken = new web3.eth.Contract(SettlementTokenArtifact.abi);
+    sampleToken = await sampleToken.deploy({ data: SettlementTokenArtifact.bytecode }).send({ from: account, gas: 2000000 });
+  
+    return sampleToken;
+}
+
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcURL));
 
 // Main Entry Point
 const main = async () => {
 
+    const creatorAccount = web3.eth.accounts.privateKeyToAccount(keys[0]);
+    const counterpartyAccount = web3.eth.accounts.privateKeyToAccount(keys[1]);
+    const anyoneAccount = web3.eth.accounts.privateKeyToAccount(keys[2]);
+    web3.eth.accounts.wallet.add(creatorAccount);
+    web3.eth.accounts.wallet.add(counterpartyAccount);
+    web3.eth.accounts.wallet.add(anyoneAccount);
+
     //set creator and counterparty
-    const creator = (await web3.eth.getAccounts())[0]
-    const counterparty = (await web3.eth.getAccounts())[1]
-    const anyone = (await web3.eth.getAccounts())[2] // used to make calls that could be made by any address
+    const creator = creatorAccount.address
+    const counterparty = counterpartyAccount.address 
+    const anyone = anyoneAccount.address // used to make calls that could be made by any address
 
     // Initialize AP with web3 object and addressBook
-    const addressBook = require('@atpar/protocol/ap-chain/addresses.json'); // address book
+    const addressBook = ADDRESS_BOOK;
     const ap = await AP.init(web3, addressBook);
 
     // Deploy Settlement Token
-    const settlementToken = await deploySettlementToken(web3);
+    const settlementToken = await deploySettlementToken(web3, creator);
 
     //create terms
-    const PAMTerms = require('./utils/PAMTerms.json');
     const terms = {
         ...PAMTerms,
         currency: settlementToken.options.address
@@ -41,8 +57,6 @@ const main = async () => {
     const schedule = await ap.utils.schedule.computeScheduleFromTerms(ap.contracts.pamEngine, terms);
     console.log(schedule)
 
-    const admin = creator
-
     // Create new PAM asset
     const initializeAssetTx = await ap.contracts.pamActor.methods.initialize(
         terms, 
@@ -50,7 +64,7 @@ const main = async () => {
         ownership, 
         ap.contracts.pamEngine.options.address, 
         ap.utils.constants.ZERO_ADDRESS 
-    ).send({from: creator})
+    ).send({from: creator, gas: 2000000})
 
     // Get AssetID
     const assetId = initializeAssetTx.events.InitializedAsset.returnValues.assetId;
@@ -72,15 +86,13 @@ const main = async () => {
     const decodedEvent = ap.utils.schedule.decodeEvent(nextScheduledEvent);
     console.log('Next scheduled event: ', decodedEvent)
 
-
     // approve actor to execute settlement payment 
     const amount = readableTerms.notionalPrincipal
     const currency = readableTerms.currency
     await ap.contracts.erc20(currency).methods.approve(ap.contracts.pamActor.options.address, amount)
     
-
     // Progress the asset
-    const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({from: anyone});
+    const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({from: anyone, gas: 2000000});
     console.log('Progress events: ', progressTx.events)
 
     console.log('\nDONE.')
