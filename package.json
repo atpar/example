@@ -11,7 +11,8 @@
     "start": "ts-node index.ts"
   },
   "dependencies": {
-    "@atpar/protocol": "0.0.1-alpha.5",
+    "@atpar/protocol": "0.0.1-alpha.6",
+    "ethers": "^5.0.19",
     "web3": "1.2.4"
   },
   "devDependencies": {

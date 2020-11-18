@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import { AP } from '@atpar/protocol';
-import SettlementTokenArtifact from '@atpar/protocol/build/contracts/SettlementToken.json';
+import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/SettlementToken.sol/SettlementToken.json';
 import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
 
 import { keys, rpcURL } from './secret.json';
