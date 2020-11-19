@@ -1,7 +1,8 @@
 import Web3 from 'web3';
+
 import { AP } from '@atpar/protocol';
-import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/SettlementToken.sol/SettlementToken.json';
 import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
+import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/SettlementToken.sol/SettlementToken.json';
 
 import { keys, rpcURL } from './secret.json';
 import PAMTerms from './utils/PAMTerms.json';
@@ -15,10 +16,8 @@ const deploySettlementToken =  async (web3: Web3, account: string) => {
     return sampleToken;
 }
 
-const web3 = new Web3(new Web3.providers.HttpProvider(rpcURL));
-
-// Main Entry Point
-const main = async () => {
+(async () => {
+    const web3 = new Web3(new Web3.providers.HttpProvider(rpcURL));
 
     const creatorAccount = web3.eth.accounts.privateKeyToAccount(keys[0]);
     const counterpartyAccount = web3.eth.accounts.privateKeyToAccount(keys[1]);
@@ -97,6 +96,4 @@ const main = async () => {
 
     console.log('\nDONE.')
     process.exit()
-}
-
-main();
+})();

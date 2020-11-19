@@ -11,7 +11,7 @@ const main = async () => {
     console.log('Applying Pre-signed Transactions...')
     for (tx of txArrary) {
         await web3.eth.sendSignedTransaction(tx)
-        console.log(await web3.eth.getBalance('0x627306090abaB3A6e1400e9345bC60c78a8BEf57'))
+        // console.log(await web3.eth.getBalance('0x627306090abaB3A6e1400e9345bC60c78a8BEf57'))
     }
     process.exit(0);
 }

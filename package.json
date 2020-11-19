@@ -1,8 +1,8 @@
 {
-  "name": "ap-js-example",
-  "version": "1.0.0",
+  "name": "example",
+  "version": "0.0.0",
   "main": "index.js",
-  "repository": "https://github.com/atpar/ap-js-example.git",
+  "repository": "https://github.com/atpar/example.git",
   "author": "Joe Bernitt <j.b5286@gmail.com>",
   "license": "MIT",
   "scripts": {
@@ -10,13 +10,12 @@
     "deploy": "./deployContracts.sh",
     "start": "ts-node index.ts"
   },
-  "dependencies": {
+  "devDependencies": {
     "@atpar/protocol": "0.0.1-alpha.6",
     "ethers": "^5.0.19",
-    "web3": "1.2.4"
-  },
-  "devDependencies": {
+    "ganache-cli": "6.10.2",
     "ts-node": "^9.0.0",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "web3": "1.2.4"
   }
 }
