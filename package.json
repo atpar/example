@@ -8,7 +8,8 @@
   "scripts": {
     "start:chain": "./scripts/startChain.sh",
     "deploy": "./deployContracts.sh",
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts",
+    "tokenize": "ts-node tokenize.ts"
   },
   "devDependencies": {
     "@atpar/protocol": "0.0.1-alpha.6",

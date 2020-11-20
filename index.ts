@@ -19,17 +19,12 @@ const deploySettlementToken =  async (web3: Web3, account: string) => {
 (async () => {
     const web3 = new Web3(new Web3.providers.HttpProvider(rpcURL));
 
-    const creatorAccount = web3.eth.accounts.privateKeyToAccount(keys[0]);
-    const counterpartyAccount = web3.eth.accounts.privateKeyToAccount(keys[1]);
-    const anyoneAccount = web3.eth.accounts.privateKeyToAccount(keys[2]);
-    web3.eth.accounts.wallet.add(creatorAccount);
-    web3.eth.accounts.wallet.add(counterpartyAccount);
-    web3.eth.accounts.wallet.add(anyoneAccount);
+    keys.forEach((pk: string) => web3.eth.accounts.wallet.add(web3.eth.accounts.privateKeyToAccount(pk)));
 
     //set creator and counterparty
-    const creator = creatorAccount.address
-    const counterparty = counterpartyAccount.address 
-    const anyone = anyoneAccount.address // used to make calls that could be made by any address
+    const creator = (web3.eth.accounts.wallet[0]).address
+    const counterparty = (web3.eth.accounts.wallet[1]).address 
+    const anyone = (web3.eth.accounts.wallet[2]).address // used to make calls that could be made by any address
 
     // Initialize AP with web3 object and addressBook
     const addressBook = ADDRESS_BOOK;
