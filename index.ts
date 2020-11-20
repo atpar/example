@@ -21,7 +21,7 @@ const deploySettlementToken =  async (web3: Web3, account: string) => {
 
     keys.forEach((pk: string) => web3.eth.accounts.wallet.add(web3.eth.accounts.privateKeyToAccount(pk)));
 
-    //set creator and counterparty
+    // set creator and counterparty accounts
     const creator = (web3.eth.accounts.wallet[0]).address
     const counterparty = (web3.eth.accounts.wallet[1]).address 
     const anyone = (web3.eth.accounts.wallet[2]).address // used to make calls that could be made by any address
@@ -33,7 +33,7 @@ const deploySettlementToken =  async (web3: Web3, account: string) => {
     // Deploy Settlement Token
     const settlementToken = await deploySettlementToken(web3, creator);
 
-    //create terms
+    // get default PAM Terms and use the settlement token as the currency
     const terms = {
         ...PAMTerms,
         currency: settlementToken.options.address
@@ -47,7 +47,7 @@ const deploySettlementToken =  async (web3: Web3, account: string) => {
         counterpartyBeneficiary: counterparty,
     }
 
-    // compute schedule
+    // compute schedule from the terms using the PAM engine
     const schedule = await ap.utils.schedule.computeScheduleFromTerms(ap.contracts.pamEngine, terms);
     console.log(schedule)
 
@@ -75,17 +75,17 @@ const deploySettlementToken =  async (web3: Web3, account: string) => {
     const readableState = ap.utils.conversion.web3ResponseToState(assetState);
     console.log('Asset state: ', readableState);
 
-    // Get next scheduled event
+    // Get next scheduled event for the asset from the PAM Registry and decode it
     const nextScheduledEvent = await ap.contracts.pamRegistry.methods.getNextScheduledEvent(assetId).call();
     const decodedEvent = ap.utils.schedule.decodeEvent(nextScheduledEvent);
     console.log('Next scheduled event: ', decodedEvent)
 
-    // approve actor to execute settlement payment 
+    // approve actor to execute settlement payment (must be called before progressing the asset)
     const amount = readableTerms.notionalPrincipal
     const currency = readableTerms.currency
     await ap.contracts.erc20(currency).methods.approve(ap.contracts.pamActor.options.address, amount)
     
-    // Progress the asset
+    // progress the asset - can be called by any account
     const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({from: anyone, gas: 2000000});
     console.log('Progress events: ', progressTx.events)
 
