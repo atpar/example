@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": false,
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["dom","es2017", "esnext.asynciterable"],
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "strict": true,
+    "removeComments": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "rootDir": "."
+  },
+  "include": [
+    "./types/*"
+  ]
+}

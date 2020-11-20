@@ -6,7 +6,6 @@
   "businessDayConvention": 0,
   "endOfMonthConvention": 0,
   "scalingEffect": 0,
-  "penaltyType": 0,
   "feeBasis": 0,
   "currency": "0x0000000000000000000000000000000000000000",
   "settlementCurrency": "0x0000000000000000000000000000000000000000",
@@ -29,8 +28,6 @@
   "nextResetRate": 0,
   "feeRate": 0,
   "feeAccrued": 0,
-  "penaltyRate": 0,
-  "delinquencyRate": 0,
   "premiumDiscountAtIED": 0,
   "priceAtPurchaseDate": 0,
   "lifeCap": 0,
@@ -42,5 +39,7 @@
   "cycleOfInterestPayment": { "i": 1, "p": 2, "s": 0, "isSet": true },
   "cycleOfRateReset": { "i": 0, "p": 0, "s": 0, "isSet": false },
   "cycleOfScalingIndex": { "i": 0, "p": 0, "s": 0, "isSet": false },
-  "cycleOfFee": { "i": 0, "p": 0, "s": 0, "isSet": false }
+  "cycleOfFee": { "i": 0, "p": 0, "s": 0, "isSet": false },
+  "issueDate": 1356998400,
+  "priceAtTerminationDate": 0
 }
