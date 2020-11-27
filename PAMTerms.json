@@ -12,6 +12,7 @@
   "marketObjectCodeRateReset": "0x00",
   "contractDealDate": 1356652800,
   "statusDate": 1356825600,
+  "issueDate": 0,
   "initialExchangeDate": 1356998400,
   "maturityDate": 1388534400,
   "purchaseDate": 0,
@@ -29,6 +30,7 @@
   "feeRate": 0,
   "feeAccrued": 0,
   "premiumDiscountAtIED": 0,
+  "priceAtTerminationDate": 0,
   "priceAtPurchaseDate": 0,
   "lifeCap": 0,
   "lifeFloor": 0,
@@ -39,7 +41,5 @@
   "cycleOfInterestPayment": { "i": 1, "p": 2, "s": 0, "isSet": true },
   "cycleOfRateReset": { "i": 0, "p": 0, "s": 0, "isSet": false },
   "cycleOfScalingIndex": { "i": 0, "p": 0, "s": 0, "isSet": false },
-  "cycleOfFee": { "i": 0, "p": 0, "s": 0, "isSet": false },
-  "issueDate": 1356998400,
-  "priceAtTerminationDate": 0
+  "cycleOfFee": { "i": 0, "p": 0, "s": 0, "isSet": false }
 }
