@@ -30,69 +30,66 @@ const deployFundsDistributionToken = async (web3: Web3, {
 }
 
 (async () => {
-
     const web3 = new Web3(new Web3.providers.HttpProvider(rpcURL));
 
-    // set up example accounts
+    // setup accounts
     keys.forEach((pk: string) => web3.eth.accounts.wallet.add(web3.eth.accounts.privateKeyToAccount(pk)));
+    
     const primaryOwner = (web3.eth.accounts.wallet[0]).address
     const fractionalOwner = (web3.eth.accounts.wallet[1]).address
     const anyone = (web3.eth.accounts.wallet[2]).address // used to make calls that could be made by any address
 
-    // Initialize AP with web3 object and addressBook
-    const addressBook = ADDRESS_BOOK;
-    const ap = await AP.init(web3, addressBook);
+    // initialize AP with web3 object and addressBook
+    const ap = await AP.init(web3, ADDRESS_BOOK);
 
-    // Get Initialization Params
+    // get Initialization Params
     const assetId: string = process.argv[2] || ''; // paste assetId here
     if (!assetId) {
         console.log('Missing parameter AssetId.')
         process.exit()
     }
 
-    // Use asset terms to get the settlement currency
-    const rawTerms = await ap.contracts.pamRegistry.methods.getTerms(assetId).call();
-    console.log(rawTerms.currency)
-    const assetTerms = ap.utils.conversion.web3ResponseToPAMTerms(rawTerms);
-    const fundsToken = assetTerms.currency
-    const initialAmount = web3.utils.toWei('3')
+    // use asset terms to get the settlement currency
+    const terms = ap.utils.conversion.web3ResponseToPAMTerms(
+        await ap.contracts.pamRegistry.methods.getTerms(assetId).call()
+    );
+    
+    // deploy Fund Distribution Token
+    const fdt = await deployFundsDistributionToken(
+        web3,
+        // @ts-ignore
+        {
+            fundsToken: terms.currency,
+            owner: primaryOwner,
+            initialAmount: web3.utils.toWei('100')
+        }
+    );
 
-    // Deploy Fund Distribution Token
+    // set FDT contract as new beneficiary for asset
+    await ap.contracts.pamRegistry.methods.setCreatorBeneficiary(
+        assetId,
+        fdt.options.address
+    ).send({from: primaryOwner, gas: 2000000});
+
+    // mint FDTs
+    await fdt.methods.mint(
+        fractionalOwner,
+        web3.utils.toWei('1')
+    ).send({from: primaryOwner, gas: 2000000});
+
+    console.log('Primary Owner Balance: ' + await fdt.methods.balanceOf(primaryOwner).call());
+    console.log('Fractional Owner Balalance: ' + await fdt.methods.balanceOf(fractionalOwner).call());
+
+    // simulate a payment of the settlement token to the FDT address
+    // in practice the FDT would be set as one of the beneficiaries
     // @ts-ignore
-    const fdt = await deployFundsDistributionToken(web3, {fundsToken, owner: primaryOwner, initialAmount})
-
-    // Set FDT Contract as new beneficiary for asset
-    await ap.contracts.pamRegistry.methods.setCreatorBeneficiary(assetId,fdt.options.address).send({from: primaryOwner, gas: 2000000});
-
-    // Share Ownership
-    await fdt.methods.mint(fractionalOwner, web3.utils.toWei('1')).send({from: primaryOwner, gas: 2000000})
-
-    const ownerBal = await fdt.methods.balanceOf(primaryOwner).call()
-    const fracBal = await fdt.methods.balanceOf(fractionalOwner).call()
-
-    console.log('Primary Owner Balance: ' + ownerBal.toString());
-    console.log('Fractional Owner Balalance: ' + fracBal.toString());
-
-    // Mock a payment of the settlement token to the FDT address
-    // @ts-ignore
-    const settlementToken = new web3.eth.Contract(SettlementTokenArtifact.abi, fundsToken);
+    const settlementToken = new web3.eth.Contract(SettlementTokenArtifact.abi, terms.currency);
     await settlementToken.methods.drip(fdt.options.address, web3.utils.toWei('50')).send({from: primaryOwner, gas: 2000000});
-
-    // const fdtBal = await settlementToken.methods.balanceOf(fdt.options.address).call()
-    // console.log('fdtBal Bal: ' + fdtBal.toString());
-
-    // Check withdrawable funds for fractional owner before calling updateFundsReceived
-    const withdrawableFrac = await fdt.methods.withdrawableFundsOf(fractionalOwner).call()
-    console.log('Withdrawable Balance of fractional owner (before calling updateFundsReceived): ' + withdrawableFrac.toString());
-
 
     // update internal balances in the FDT (can be called by any account)
     await fdt.methods.updateFundsReceived().send({from: anyone, gas: 2000000})
 
-    // Check withdrawable funds for fractional owner after calling updateFundsReceived
-    const withdrawableFrac2 = await fdt.methods.withdrawableFundsOf(fractionalOwner).call()
-    console.log('Withdrawable Balance of fractional owner (after calling updateFundsReceived): ' + withdrawableFrac2.toString());
-
-
-    process.exit(0);
+    // check withdrawable funds for fractional owner after calling updateFundsReceived
+    const withdrawableAmount = await fdt.methods.withdrawableFundsOf(fractionalOwner).call()
+    console.log('Withdrawable Balance of fractional owner (after calling updateFundsReceived): ' + withdrawableAmount.toString());
 })();
