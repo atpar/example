@@ -6,10 +6,10 @@
   "author": "Joe Bernitt <j.b5286@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start:chain": "./scripts/startChain.sh",
-    "deploy": "./deployContracts.sh",
-    "start": "ts-node index.ts",
-    "tokenize": "ts-node tokenize.ts"
+    "start:env": "./scripts/start-env.sh",
+    "deploy": "./deploy-contracts.sh",
+    "asset:create": "ts-node create.ts",
+    "asset:tokenize": "ts-node tokenize.ts"
   },
   "devDependencies": {
     "@atpar/protocol": "0.0.1-alpha.6",

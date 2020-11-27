@@ -21,8 +21,5 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "rootDir": "."
-  },
-  "include": [
-    "./types/*"
-  ]
+  }
 }

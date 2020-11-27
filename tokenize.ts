@@ -46,7 +46,7 @@ const deployFundsDistributionToken = async (web3: Web3, {
     // Get Initialization Params
     const assetId: string = process.argv[2] || ''; // paste assetId here
     if (!assetId) {
-        console.log('assetId is not set')
+        console.log('Missing parameter AssetId.')
         process.exit()
     }
 

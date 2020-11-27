@@ -6,22 +6,22 @@ Consider this project the "hello, world" for the [Typescript SDK](https://github
 
 Install node modules
 
-    yarn
+    yarn install
 
 Start a local ethereum testnet:
 
-    yarn start:chain
+    yarn start:env
 
 
 ## Run the full example
 
 Initialize and create a new asset:
 
-    yarn start
+    yarn asset:create
 
 Run tokenization example:
 
-    yarn tokenize
+    yarn asset:tokenize <AssetId>
     
 
 For more documentation on how to use the Typescript SDK please refer to the [Actus Protocol Docs](https://docs.actus-protocol.io/guides/getting-started)
