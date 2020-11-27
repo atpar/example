@@ -1,8 +1,10 @@
 import Web3 from 'web3';
+import BigNumber from 'bignumber.js';
 
 import { AP } from '@atpar/protocol';
 import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
 
+import PAMTerms from './PAMTerms.json';
 import { keys, rpcURL } from './secret.json';
 
 import VanillaFDTArtifact from '@atpar/protocol/build/contracts/contracts/Extensions/FDT/VanillaFDT/VanillaFDT.sol/VanillaFDT.json';
@@ -35,61 +37,97 @@ const deployFundsDistributionToken = async (web3: Web3, {
     // setup accounts
     keys.forEach((pk: string) => web3.eth.accounts.wallet.add(web3.eth.accounts.privateKeyToAccount(pk)));
     
-    const primaryOwner = (web3.eth.accounts.wallet[0]).address
-    const fractionalOwner = (web3.eth.accounts.wallet[1]).address
-    const anyone = (web3.eth.accounts.wallet[2]).address // used to make calls that could be made by any address
+    const creator = (web3.eth.accounts.wallet[0]).address; // creator of the asset (lender in our case)
+    const counterparty = (web3.eth.accounts.wallet[1]).address; // creator of the asset (lender in our case)
+    const anyone = (web3.eth.accounts.wallet[2]).address; // used to make calls that could be made by any address
+    const holder = (web3.eth.accounts.wallet[3]).address; // future holder of FDTs
 
     // initialize AP with web3 object and addressBook
     const ap = await AP.init(web3, ADDRESS_BOOK);
 
-    // get Initialization Params
-    const assetId: string = process.argv[2] || ''; // paste assetId here
-    if (!assetId) {
-        console.log('Missing parameter AssetId.')
-        process.exit()
-    }
+    // Deploy Settlement Token
+    // @ts-ignore
+    const settlementToken = await (new web3.eth.Contract(SettlementTokenArtifact.abi)).deploy(
+        { data: SettlementTokenArtifact.bytecode }
+    ).send({ from: creator, gas: 2000000 });
 
-    // use asset terms to get the settlement currency
-    const terms = ap.utils.conversion.web3ResponseToPAMTerms(
-        await ap.contracts.pamRegistry.methods.getTerms(assetId).call()
-    );
+
+    // create the term sheet by setting the currency to the Settlement Token contract we just deployed
+    const terms = { ...PAMTerms, currency: settlementToken.options.address };
+
+    // set up ownership
+    const ownership = {
+        creatorObligor: creator, // account which has to fulfill the lenders obligations (such as the initial exchange)
+        creatorBeneficiary: creator, // account which receives positive cashflows for the lender (such as interest payments)
+        counterpartyObligor: counterparty, // account which has to fulfill the debtors obligations (such as paying interest)
+        counterpartyBeneficiary: counterparty, //account which receives positive cashflows for the debtor (such as the principal)
+    };
+
+    // create new PAM asset
+    const initializeAssetTx = await ap.contracts.pamActor.methods.initialize(
+        terms, 
+        [], // optionally pass custom schedule, 
+        ownership, 
+        ap.contracts.pamEngine.options.address, 
+        ap.utils.constants.ZERO_ADDRESS 
+    ).send({ from: creator, gas: 2000000 });
+
+    // retrieve the AssetId from the transaction event logs
+    const assetId = initializeAssetTx.events.InitializedAsset.returnValues.assetId;
+    console.log('AssetId: ' + assetId);
+
+    // approve actor to execute settlement payment (must be called before progressing the asset)
+    // lender has to give allowance to the Actor to transfer the principal to the debtor
+    await ap.contracts.erc20(terms.currency).methods.approve(
+        ap.contracts.pamActor.options.address,
+        terms.notionalPrincipal
+    ).send({ from: creator, gas: 2000000 });
+
+    // progress the asset - can be called by any account
+    // processes the first event (IED)
+    await ap.contracts.pamActor.methods.progress(assetId).send({ from: anyone, gas: 2000000 });
     
-    // deploy Fund Distribution Token
+    // deploy a new Funds Distribution Token
     const fdt = await deployFundsDistributionToken(
         web3,
         // @ts-ignore
         {
             fundsToken: terms.currency,
-            owner: primaryOwner,
+            owner: creator,
             initialAmount: web3.utils.toWei('100')
         }
     );
 
+    // creator sells 50% of his FDTs to a third party
+    await fdt.methods.transfer(
+        holder,
+        new BigNumber(await fdt.methods.balanceOf(creator).call()).dividedBy(2).toString()
+    ).send({ from: creator, gas: 1000000 });
+
     // set FDT contract as new beneficiary for asset
+    // in our case the FDT will receive and distribute all future interest payments
     await ap.contracts.pamRegistry.methods.setCreatorBeneficiary(
         assetId,
         fdt.options.address
-    ).send({from: primaryOwner, gas: 2000000});
+    ).send({ from: creator, gas: 2000000 });
 
-    // mint FDTs
-    await fdt.methods.mint(
-        fractionalOwner,
-        web3.utils.toWei('1')
-    ).send({from: primaryOwner, gas: 2000000});
+    // approve actor to execute settlement payment
+    // debtor has to give allowance to the Actor to transfer the first interest payment
+    await settlementToken.methods.approve(
+        ap.contracts.pamActor.options.address,
+        '25479452054794518000'
+    ).send({ from: counterparty, gas: 2000000 });
 
-    console.log('Primary Owner Balance: ' + await fdt.methods.balanceOf(primaryOwner).call());
-    console.log('Fractional Owner Balalance: ' + await fdt.methods.balanceOf(fractionalOwner).call());
-
-    // simulate a payment of the settlement token to the FDT address
-    // in practice the FDT would be set as one of the beneficiaries
-    // @ts-ignore
-    const settlementToken = new web3.eth.Contract(SettlementTokenArtifact.abi, terms.currency);
-    await settlementToken.methods.drip(fdt.options.address, web3.utils.toWei('50')).send({from: primaryOwner, gas: 2000000});
+    // process the first interest payment (zero - because nothing has accrued since initial exchange)
+    await ap.contracts.pamActor.methods.progress(assetId).send({ from: anyone, gas: 2000000 });
+    // process the second interest payment (non zero)
+    await ap.contracts.pamActor.methods.progress(assetId).send({ from: anyone, gas: 2000000 });
 
     // update internal balances in the FDT (can be called by any account)
-    await fdt.methods.updateFundsReceived().send({from: anyone, gas: 2000000})
+    await fdt.methods.updateFundsReceived().send({ from: anyone, gas: 2000000 })
 
     // check withdrawable funds for fractional owner after calling updateFundsReceived
-    const withdrawableAmount = await fdt.methods.withdrawableFundsOf(fractionalOwner).call()
-    console.log('Withdrawable Balance of fractional owner (after calling updateFundsReceived): ' + withdrawableAmount.toString());
+    const withdrawableAmount = await fdt.methods.withdrawableFundsOf(holder).call()
+    // Holder received 50% of the first interst payment
+    console.log('Withdrawable Balance of Holder: ' + withdrawableAmount.toString());
 })();

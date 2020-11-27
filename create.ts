@@ -4,8 +4,8 @@ import { AP } from '@atpar/protocol';
 import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
 import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/SettlementToken.sol/SettlementToken.json';
 
-import { keys, rpcURL } from './secret.json';
 import PAMTerms from './PAMTerms.json';
+import { keys, rpcURL } from './secret.json';
 
 
 (async () => {
@@ -46,7 +46,7 @@ import PAMTerms from './PAMTerms.json';
         ownership, 
         ap.contracts.pamEngine.options.address, 
         ap.utils.constants.ZERO_ADDRESS 
-    ).send({from: creator, gas: 2000000});
+    ).send({ from: creator, gas: 2000000 });
 
     // retrieve the AssetId from the transaction event logs
     const assetId = initializeAssetTx.events.InitializedAsset.returnValues.assetId;
@@ -73,11 +73,11 @@ import PAMTerms from './PAMTerms.json';
     await ap.contracts.erc20(terms.currency).methods.approve(
         ap.contracts.pamActor.options.address,
         terms.notionalPrincipal
-    ).send({from: creator, gas: 2000000 });
+    ).send({ from: creator, gas: 2000000 });
     
     // progress the asset - can be called by any account
     // processes the first event (IED)
-    const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({from: anyone, gas: 2000000});
+    const progressTx = await ap.contracts.pamActor.methods.progress(assetId).send({ from: anyone, gas: 2000000 });
     console.log('Progressed Event: ', progressTx.events.ProgressedAsset.returnValues);
 
     // continue with getNextScheduledEvent for all subsequent events
