@@ -21,7 +21,7 @@ Initialize and create a new asset:
 
 Run tokenization example:
 
-    yarn asset:tokenize <AssetId>
+    yarn asset:tokenize
     
 
 For more documentation on how to use the Typescript SDK please refer to the [ACTUS Protocol Docs](https://docs.actus-protocol.io/guides/getting-started)
