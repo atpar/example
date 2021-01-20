@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@atpar/protocol@0.0.1-alpha.6":
-  version "0.0.1-alpha.6"
-  resolved "https://registry.yarnpkg.com/@atpar/protocol/-/protocol-0.0.1-alpha.6.tgz#e2d777a2e4ade5eba3f9dd0cefc55b2fc747df8a"
-  integrity sha512-mBIkvLjmaMO90uNiddfbUBqT2NlwDD23Zjy9KtRkhcnC4pAz1Xb6ofbtGkEuff0mCneHn3DWyP8KCoDxuH55Sw==
+"@atpar/protocol@0.0.1-alpha.10":
+  version "0.0.1-alpha.10"
+  resolved "https://registry.yarnpkg.com/@atpar/protocol/-/protocol-0.0.1-alpha.10.tgz#87a6653b156eec384b810b187994f22e7102254e"
+  integrity sha512-clqX01Xm6UoWvI1L/87zwj92FG41osQgu48zai/WZLKBG1BAbCCJtxTqF9kQIw/vMKR28wMrPCHvYaPCAuGULw==
   dependencies:
     "@openzeppelin/contracts" "3.2.2-solc-0.7"
     bn.js "^4.4.0"

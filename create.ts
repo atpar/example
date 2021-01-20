@@ -1,9 +1,8 @@
 import Web3 from 'web3';
-import { AP } from '@atpar/protocol';
+import { AP, APTypes } from '@atpar/protocol';
 
 import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
-import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/SettlementToken.sol/SettlementToken.json';
-
+import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/tokens/SettlementToken.sol/SettlementToken.json';
 import PAMTerms from './PAMTerms.json';
 import { keys, rpcURL } from './secret.json';
 
@@ -45,6 +44,7 @@ import { keys, rpcURL } from './secret.json';
         [], // optionally pass custom schedule, 
         ownership, 
         ap.contracts.pamEngine.options.address, 
+        ap.utils.constants.ZERO_ADDRESS, 
         ap.utils.constants.ZERO_ADDRESS 
     ).send({ from: creator, gas: 2000000 });
 
@@ -53,12 +53,12 @@ import { keys, rpcURL } from './secret.json';
     console.log('AssetId: ' + assetId);
 
     // get asset terms
-    console.log('Terms: ', ap.utils.conversion.web3ResponseToState(
+    console.log('Terms: ', ap.utils.conversion.parseWeb3Response<APTypes.UTerms>(
         await ap.contracts.pamRegistry.methods.getTerms(assetId).call())
     );
 
     // get asset state
-    console.log('State: ', ap.utils.conversion.web3ResponseToState(
+    console.log('State: ', ap.utils.conversion.parseWeb3Response<APTypes.UState>(
         await ap.contracts.pamRegistry.methods.getState(assetId).call())
     );
 

@@ -7,8 +7,8 @@ import ADDRESS_BOOK from '@atpar/protocol/ap-chain/addresses.json';
 import PAMTerms from './PAMTerms.json';
 import { keys, rpcURL } from './secret.json';
 
-import VanillaFDTArtifact from '@atpar/protocol/build/contracts/contracts/Extensions/FDT/VanillaFDT/VanillaFDT.sol/VanillaFDT.json';
-import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/SettlementToken.sol/SettlementToken.json';
+import VanillaFDTArtifact from '@atpar/protocol/build/contracts/contracts/tokens/FDT/VanillaFDT/VanillaFDT.sol/VanillaFDT.json';
+import SettlementTokenArtifact from '@atpar/protocol/build/contracts/contracts/tokens/SettlementToken.sol/SettlementToken.json';
 
 const deployFundsDistributionToken = async (web3: Web3, {
     name = 'FundsDistributionToken',
@@ -69,7 +69,8 @@ const deployFundsDistributionToken = async (web3: Web3, {
         [], // optionally pass custom schedule, 
         ownership, 
         ap.contracts.pamEngine.options.address, 
-        ap.utils.constants.ZERO_ADDRESS 
+        ap.utils.constants.ZERO_ADDRESS,
+        ap.utils.constants.ZERO_ADDRESS
     ).send({ from: creator, gas: 2000000 });
 
     // retrieve the AssetId from the transaction event logs
